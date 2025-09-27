@@ -9,7 +9,7 @@
             margin: 0;
             padding: 0;
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(to bottom, #f4d03f, #f39c12); /* Cozy autumn gradient */
+            background: linear-gradient(to bottom, #f4d03f, #f39c12);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -31,9 +31,9 @@
         }
         #title {
             font-size: 2em;
-            color: #ff9900; /* Orange like Granny's cardigan */
+            color: #ff9900;
             margin: 10px;
-            font-style: italic; /* Like your logo */
+            font-style: italic;
         }
         #granny {
             position: absolute;
@@ -49,22 +49,29 @@
             transform: translateX(-50%);
             width: 200px;
             height: 250px;
-            background: #8b4513; /* Brown backpack */
-            border-radius: 20px 20px 0 0;
-            border: 5px solid #a0522d;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 3em;
+            font-size: 10em;
+            color: #8b4513;
+            z-index: 10;
+        }
+        #backpack .letter {
+            position: absolute;
+            font-size: 0.3em;
             color: white;
-            z-index: 10; /* Ensure backpack is above items */
+            background: #a0522d;
+            padding: 10px;
+            border-radius: 50%;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
         .item {
             position: absolute;
             width: 120px;
             height: 150px;
-            cursor: grab;
-            touch-action: manipulation; /* Better touch handling */
+            cursor: pointer;
             background: #fff;
             border: 2px solid #ddd;
             border-radius: 10px;
@@ -74,14 +81,15 @@
             align-items: center;
             font-size: 1em;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            z-index: 5; /* Below backpack */
+            z-index: 5;
+            transition: transform 0.2s;
         }
         .item .image {
-            font-size: 4em; /* Large image/emoji */
+            font-size: 4em;
             margin-bottom: 5px;
         }
         .item .word {
-            font-size: 0.8em; /* Small word */
+            font-size: 0.8em;
         }
         #timer {
             position: absolute;
@@ -110,13 +118,33 @@
             font-size: 1em;
             color: #333;
         }
-        /* Animation for bounce */
+        #startButton {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5em;
+            padding: 15px 30px;
+            background-color: #ffcc66;
+            color: #333;
+            border: 4px solid #ff9900;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            font-weight: bold;
+            text-align: center;
+            width: 200px;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        #startButton:hover, #startButton:active {
+            transform: translate(-50%, -50%) scale(1.05);
+            background-color: #ffb84d;
+        }
         @keyframes bounce {
             0% { transform: translateY(0); }
             50% { transform: translateY(-20px); }
             100% { transform: translateY(0); }
         }
-        /* Media queries for responsiveness */
         @media (max-width: 600px) {
             .item {
                 width: 100px;
@@ -128,7 +156,11 @@
             #backpack {
                 width: 150px;
                 height: 200px;
-                font-size: 2.5em;
+                font-size: 8em;
+            }
+            #backpack .letter {
+                font-size: 0.4em;
+                padding: 8px;
             }
             #title {
                 font-size: 1.5em;
@@ -145,7 +177,15 @@
             }
             .item {
                 top: auto;
-                bottom: 300px; /* Above backpack */
+                bottom: 300px;
+            }
+            #startButton {
+                font-size: 1.2em;
+                padding: 10px 20px;
+                width: 150px;
+            }
+            #startButton:hover, #startButton:active {
+                transform: translate(-50%, -50%) scale(1.05);
             }
         }
     </style>
@@ -153,122 +193,44 @@
 <body>
     <div id="game-container">
         <div id="title">Granny’s Backpack</div>
-        <div id="granny">👩‍🦱</div> <!-- Simple emoji for Granny Bean -->
-        <div id="backpack" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+        <div id="granny">👩‍🦱</div>
+        <div id="backpack"></div>
         <div id="timer">Time: 60</div>
         <div id="hint"></div>
         <div id="progress">Packed: 0/0</div>
+        <div id="startButton" onclick="initAndStart()">Tap to Start!</div>
     </div>
-
-<audio id="correctSound" src="sounds/ding.mp3" preload="auto"></audio>
-<audio id="wrongSound" src="sounds/boing.mp3" preload="auto"></audio>
+    <audio id="correctSound" src="sounds/ding.mp3" preload="auto"></audio>
+    <audio id="wrongSound" src="sounds/boing.mp3" preload="auto"></audio>
 
     <script>
         const itemsData = {
-            "A": {
-                "correct": [{emoji: "🍎", word: "Apple"}, {emoji: "🐜", word: "Ant"}],
-                "wrong": [{emoji: "⚽", word: "Ball"}, {emoji: "🐱", word: "Cat"}]
-            },
-            "B": {
-                "correct": [{emoji: "⚽", word: "Ball"}, {emoji: "🎈", word: "Balloon"}, {emoji: "🦇", word: "Bat"}],
-                "wrong": [{emoji: "🍎", word: "Apple"}]
-            },
-            "C": {
-                "correct": [{emoji: "🍰", word: "Cake"}, {emoji: "🕯️", word: "Candle"}],
-                "wrong": [{emoji: "⚽", word: "Ball"}, {emoji: "🐻", word: "Bear"}]
-            },
-            "D": {
-                "correct": [{emoji: "🐶", word: "Dog"}, {emoji: "🚪", word: "Door"}, {emoji: "🥁", word: "Drum"}],
-                "wrong": [{emoji: "🍰", word: "Cake"}]
-            },
-            "E": {
-                "correct": [{emoji: "🥚", word: "Egg"}, {emoji: "🐘", word: "Elephant"}],
-                "wrong": [{emoji: "🐶", word: "Dog"}, {emoji: "🚪", word: "Door"}]
-            },
-            "F": {
-                "correct": [{emoji: "🐟", word: "Fish"}, {emoji: "🌸", word: "Flower"}, {emoji: "🏈", word: "Football"}],
-                "wrong": [{emoji: "🥚", word: "Egg"}]
-            },
-            "G": {
-                "correct": [{emoji: "🎮", word: "Game"}, {emoji: "🗑️", word: "Garbage"}],
-                "wrong": [{emoji: "🐟", word: "Fish"}, {emoji: "🌸", word: "Flower"}]
-            },
-            "H": {
-                "correct": [{emoji: "🎩", word: "Hat"}, {emoji: "🏠", word: "House"}, {emoji: "❤️", word: "Heart"}],
-                "wrong": [{emoji: "🎮", word: "Game"}]
-            },
-            "I": {
-                "correct": [{emoji: "🍨", word: "Ice Cream"}, {emoji: "🧊", word: "Ice"}],
-                "wrong": [{emoji: "🎩", word: "Hat"}, {emoji: "🏠", word: "House"}]
-            },
-            "J": {
-                "correct": [{emoji: "🎲", word: "Jacks"}, {emoji: "🎃", word: "Jack-o-lantern"}],
-                "wrong": [{emoji: "🍨", word: "Ice Cream"}, {emoji: "🧊", word: "Ice"}]
-            },
-            "K": {
-                "correct": [{emoji: "🦘", word: "Kangaroo"}, {emoji: "🍅", word: "Ketchup"}, {emoji: "🔑", word: "Key"}],
-                "wrong": [{emoji: "🎲", word: "Jacks"}]
-            },
-            "L": {
-                "correct": [{emoji: "🦁", word: "Lion"}, {emoji: "🔒", word: "Lock"}],
-                "wrong": [{emoji: "🦘", word: "Kangaroo"}, {emoji: "🍅", word: "Ketchup"}]
-            },
-            "M": {
-                "correct": [{emoji: "🐒", word: "Monkey"}, {emoji: "🌕", word: "Moon"}],
-                "wrong": [{emoji: "🦁", word: "Lion"}, {emoji: "🔒", word: "Lock"}]
-            },
-            "N": {
-                "correct": [{emoji: "🪹", word: "Nest"}, {emoji: "📰", word: "Newspaper"}, {emoji: "🌙", word: "Night"}],
-                "wrong": [{emoji: "🐒", word: "Monkey"}]
-            },
-            "O": {
-                "correct": [{emoji: "🐙", word: "Octopus"}, {emoji: "🦦", word: "Otter"}],
-                "wrong": [{emoji: "🪹", word: "Nest"}, {emoji: "📰", word: "Newspaper"}]
-            },
-            "P": {
-                "correct": [{emoji: "✏️", word: "Pencil"}, {emoji: "🍕", word: "Pizza"}],
-                "wrong": [{emoji: "🐙", word: "Octopus"}, {emoji: "🦦", word: "Otter"}]
-            },
-            "Q": {
-                "correct": [{emoji: "👸", word: "Queen"}, {emoji: "❓", word: "Question"}, {emoji: "🪶", word: "Quill"}],
-                "wrong": [{emoji: "✏️", word: "Pencil"}]
-            },
-            "R": {
-                "correct": [{emoji: "🐰", word: "Rabbit"}, {emoji: "🌈", word: "Rainbow"}],
-                "wrong": [{emoji: "👸", word: "Queen"}, {emoji: "❓", word: "Question"}]
-            },
-            "S": {
-                "correct": [{emoji: "🐍", word: "Snake"}, {emoji: "⭐", word: "Star"}],
-                "wrong": [{emoji: "🐰", word: "Rabbit"}, {emoji: "🌈", word: "Rainbow"}]
-            },
-            "T": {
-                "correct": [{emoji: "⛺", word: "Tent"}, {emoji: "🌳", word: "Tree"}, {emoji: "🚜", word: "Tractor"}],
-                "wrong": [{emoji: "🐍", word: "Snake"}]
-            },
-            "U": {
-                "correct": [{emoji: "☂️", word: "Umbrella"}, {emoji: "🦄", word: "Unicorn"}],
-                "wrong": [{emoji: "⛺", word: "Tent"}, {emoji: "🌳", word: "Tree"}]
-            },
-            "V": {
-                "correct": [{emoji: "🚐", word: "Van"}, {emoji: "🥕", word: "Vegetable"}],
-                "wrong": [{emoji: "☂️", word: "Umbrella"}, {emoji: "🦄", word: "Unicorn"}]
-            },
-            "W": {
-                "correct": [{emoji: "💧", word: "Water"}, {emoji: "🍉", word: "Watermelon"}, {emoji: "⌚", word: "Watch"}],
-                "wrong": [{emoji: "🚐", word: "Van"}]
-            },
-            "X": {
-                "correct": [{emoji: "🩻", word: "X-ray"}, {emoji: "🪇", word: "Xylophone"}],
-                "wrong": [{emoji: "💧", word: "Water"}, {emoji: "🍉", word: "Watermelon"}]
-            },
-            "Y": {
-                "correct": [{emoji: "🧶", word: "Yarn"}, {emoji: "🟡", word: "Yellow"}],
-                "wrong": [{emoji: "🩻", word: "X-ray"}, {emoji: "🪇", word: "Xylophone"}]
-            },
-            "Z": {
-                "correct": [{emoji: "🦓", word: "Zebra"}, {emoji: "🤐", word: "Zipper"}],
-                "wrong": [{emoji: "🧶", word: "Yarn"}, {emoji: "🟡", word: "Yellow"}]
-            }
+            "A": {"correct": [{"emoji": "🍎", "word": "Apple"}, {"emoji": "🐜", "word": "Ant"}], "wrong": [{"emoji": "⚽", "word": "Ball"}, {"emoji": "🐱", "word": "Cat"}]},
+            "B": {"correct": [{"emoji": "⚽", "word": "Ball"}, {"emoji": "🎈", "word": "Balloon"}, {"emoji": "🦇", "word": "Bat"}], "wrong": [{"emoji": "🍎", "word": "Apple"}]},
+            "C": {"correct": [{"emoji": "🍰", "word": "Cake"}, {"emoji": "🕯️", "word": "Candle"}], "wrong": [{"emoji": "⚽", "word": "Ball"}, {"emoji": "🐻", "word": "Bear"}]},
+            "D": {"correct": [{"emoji": "🐶", "word": "Dog"}, {"emoji": "🚪", "word": "Door"}, {"emoji": "🥁", "word": "Drum"}], "wrong": [{"emoji": "🍰", "word": "Cake"}]},
+            "E": {"correct": [{"emoji": "🥚", "word": "Egg"}, {"emoji": "🐘", "word": "Elephant"}], "wrong": [{"emoji": "🐶", "word": "Dog"}, {"emoji": "🚪", "word": "Door"}]},
+            "F": {"correct": [{"emoji": "🐟", "word": "Fish"}, {"emoji": "🌸", "word": "Flower"}, {"emoji": "🏈", "word": "Football"}], "wrong": [{"emoji": "🥚", "word": "Egg"}]},
+            "G": {"correct": [{"emoji": "🎮", "word": "Game"}, {"emoji": "🗑️", "word": "Garbage"}], "wrong": [{"emoji": "🐟", "word": "Fish"}, {"emoji": "🌸", "word": "Flower"}]},
+            "H": {"correct": [{"emoji": "🎩", "word": "Hat"}, {"emoji": "🏠", "word": "House"}, {"emoji": "❤️", "word": "Heart"}], "wrong": [{"emoji": "🎮", "word": "Game"}]},
+            "I": {"correct": [{"emoji": "🍨", "word": "Ice Cream"}, {"emoji": "🧊", "word": "Ice"}], "wrong": [{"emoji": "🎩", "word": "Hat"}, {"emoji": "🏠", "word": "House"}]},
+            "J": {"correct": [{"emoji": "🎲", "word": "Jacks"}, {"emoji": "🎃", "word": "Jack-o-lantern"}], "wrong": [{"emoji": "🍨", "word": "Ice Cream"}, {"emoji": "🧊", "word": "Ice"}]},
+            "K": {"correct": [{"emoji": "🦘", "word": "Kangaroo"}, {"emoji": "🍅", "word": "Ketchup"}, {"emoji": "🔑", "word": "Key"}], "wrong": [{"emoji": "🎲", "word": "Jacks"}]},
+            "L": {"correct": [{"emoji": "🦁", "word": "Lion"}, {"emoji": "🔒", "word": "Lock"}], "wrong": [{"emoji": "🦘", "word": "Kangaroo"}, {"emoji": "🍅", "word": "Ketchup"}]},
+            "M": {"correct": [{"emoji": "🐒", "word": "Monkey"}, {"emoji": "🌕", "word": "Moon"}], "wrong": [{"emoji": "🦁", "word": "Lion"}, {"emoji": "🔒", "word": "Lock"}]},
+            "N": {"correct": [{"emoji": "🪹", "word": "Nest"}, {"emoji": "📰", "word": "Newspaper"}, {"emoji": "🌙", "word": "Night"}], "wrong": [{"emoji": "🐒", "word": "Monkey"}]},
+            "O": {"correct": [{"emoji": "🐙", "word": "Octopus"}, {"emoji": "🦦", "word": "Otter"}], "wrong": [{"emoji": "🪹", "word": "Nest"}, {"emoji": "📰", "word": "Newspaper"}]},
+            "P": {"correct": [{"emoji": "✏️", "word": "Pencil"}, {"emoji": "🍕", "word": "Pizza"}], "wrong": [{"emoji": "🐙", "word": "Octopus"}, {"emoji": "🦦", "word": "Otter"}]},
+            "Q": {"correct": [{"emoji": "👸", "word": "Queen"}, {"emoji": "❓", "word": "Question"}, {"emoji": "🪶", "word": "Quill"}], "wrong": [{"emoji": "✏️", "word": "Pencil"}]},
+            "R": {"correct": [{"emoji": "🐰", "word": "Rabbit"}, {"emoji": "🌈", "word": "Rainbow"}], "wrong": [{"emoji": "👸", "word": "Queen"}, {"emoji": "❓", "word": "Question"}]},
+            "S": {"correct": [{"emoji": "🐍", "word": "Snake"}, {"emoji": "⭐", "word": "Star"}], "wrong": [{"emoji": "🐰", "word": "Rabbit"}, {"emoji": "🌈", "word": "Rainbow"}]},
+            "T": {"correct": [{"emoji": "⛺", "word": "Tent"}, {"emoji": "🌳", "word": "Tree"}, {"emoji": "🚜", "word": "Tractor"}], "wrong": [{"emoji": "🐍", "word": "Snake"}]},
+            "U": {"correct": [{"emoji": "☂️", "word": "Umbrella"}, {"emoji": "🦄", "word": "Unicorn"}], "wrong": [{"emoji": "⛺", "word": "Tent"}, {"emoji": "🌳", "word": "Tree"}]},
+            "V": {"correct": [{"emoji": "🚐", "word": "Van"}, {"emoji": "🥕", "word": "Vegetable"}], "wrong": [{"emoji": "☂️", "word": "Umbrella"}, {"emoji": "🦄", "word": "Unicorn"}]},
+            "W": {"correct": [{"emoji": "💧", "word": "Water"}, {"emoji": "🍉", "word": "Watermelon"}, {"emoji": "⌚", "word": "Watch"}], "wrong": [{"emoji": "🚐", "word": "Van"}]},
+            "X": {"correct": [{"emoji": "🩻", "word": "X-ray"}, {"emoji": "🪇", "word": "Xylophone"}], "wrong": [{"emoji": "💧", "word": "Water"}, {"emoji": "🍉", "word": "Watermelon"}]},
+            "Y": {"correct": [{"emoji": "🧶", "word": "Yarn"}, {"emoji": "🟡", "word": "Yellow"}], "wrong": [{"emoji": "🩻", "word": "X-ray"}, {"emoji": "🪇", "word": "Xylophone"}]},
+            "Z": {"correct": [{"emoji": "🦓", "word": "Zebra"}, {"emoji": "🤐", "word": "Zipper"}], "wrong": [{"emoji": "🧶", "word": "Yarn"}, {"emoji": "🟡", "word": "Yellow"}]}
         };
 
         let currentLetterIndex = 0;
@@ -292,22 +254,30 @@
         function playCorrectSound() {
             initAudio();
             const audio = document.getElementById('correctSound');
-            audio.volume = 0.3; // Soft volume
+            audio.volume = 0.5;
             audio.currentTime = 0;
+            console.log("Playing correct sound");
             audio.play().catch(e => console.log("Audio play failed:", e));
         }
 
         function playWrongSound() {
             initAudio();
             const audio = document.getElementById('wrongSound');
-            audio.volume = 0.3; // Soft volume
+            audio.volume = 0.5;
             audio.currentTime = 0;
+            console.log("Playing wrong sound");
             audio.play().catch(e => console.log("Audio play failed:", e));
+        }
+
+        function initAndStart() {
+            initAudio();
+            startGame();
+            document.getElementById('startButton').style.display = 'none';
         }
 
         function startGame() {
             document.getElementById('title').innerText = `Pack for ${targetLetter}!`;
-            document.getElementById('backpack').innerText = targetLetter;
+            document.getElementById('backpack').innerHTML = '🎒<span class="letter">' + targetLetter + '</span>';
             loadItems();
             timerInterval = setInterval(() => {
                 timeLeft--;
@@ -327,10 +297,10 @@
 
             const data = itemsData[targetLetter];
             let allItems = [...data.correct, ...data.wrong];
-            allItems.sort(() => Math.random() - 0.5); // Shuffle
-            const itemsToUse = allItems.slice(0, 4); // Limit to 4 cards
+            allItems.sort(() => Math.random() - 0.5);
+            const itemsToUse = allItems.slice(0, 4);
 
-            requiredCorrect = data.correct.length; // Set based on actual correct items
+            requiredCorrect = data.correct.length;
             score = 0;
             document.getElementById('progress').innerText = `Packed: 0/${requiredCorrect}`;
 
@@ -347,8 +317,7 @@
                 const item = document.createElement('div');
                 item.className = 'item';
                 item.id = `item-${index}`;
-                item.draggable = true;
-                item.ondragstart = drag;
+                item.onclick = () => packItem(item);
                 item.innerHTML = `<span class="image">${obj.emoji}</span><span class="word">${obj.word}</span>`;
                 item.dataset.letter = obj.word[0].toUpperCase();
 
@@ -357,8 +326,7 @@
                     const row = Math.floor(index / 2);
                     item.style.left = `${(containerWidth / 2) * col + (containerWidth / 4) - (itemWidth / 2)}px`;
                     item.style.top = `${startTop + row * (itemHeight + 20)}px`;
-                    const itemRect = item.getBoundingClientRect();
-                    if (itemRect && itemRect.bottom > containerHeight - 250) {
+                    if (item.getBoundingClientRect().bottom > containerHeight - 250) {
                         item.style.top = `${containerHeight - 250 - (row * (itemHeight + 20))}px`;
                     }
                 } else {
@@ -367,75 +335,22 @@
                 }
 
                 container.appendChild(item);
-
-                item.addEventListener('touchstart', (ev) => {
-                    ev.preventDefault();
-                    initAudio(); // Ensure audio context is ready
-                    ev.target.style.opacity = 0.5;
-                    const rect = ev.target.getBoundingClientRect();
-                    ev.target.style.position = 'absolute';
-                    ev.target.style.left = `${rect.left}px`;
-                    ev.target.style.top = `${rect.top}px`;
-                });
-                item.addEventListener('touchmove', (ev) => {
-                    ev.preventDefault();
-                    let touch = ev.touches[0];
-                    ev.target.style.left = `${touch.clientX - (itemWidth / 2)}px`;
-                    ev.target.style.top = `${touch.clientY - (itemHeight / 2)}px`;
-                    const backpackRect = document.getElementById('backpack').getBoundingClientRect();
-                    if (ev.target.getBoundingClientRect().bottom > backpackRect.top) {
-                        ev.target.style.top = `${backpackRect.top - itemHeight}px`;
-                    }
-                });
-                item.addEventListener('touchend', (ev) => {
-                    ev.preventDefault();
-                    ev.target.style.opacity = 1;
-                    let backpack = document.getElementById('backpack');
-                    let rect = backpack.getBoundingClientRect();
-                    let x = ev.changedTouches[0].clientX;
-                    let y = ev.changedTouches[0].clientY;
-                    if (x > rect.left && x < rect.right && y > rect.top && y < rect.bottom) {
-                        let fakeEv = { target: backpack, preventDefault: () => {}, dataTransfer: { getData: () => item.id } };
-                        drop(fakeEv);
-                    } else {
-                        const col = index % 2;
-                        const row = Math.floor(index / 2);
-                        ev.target.style.left = `${(containerWidth / 2) * col + (containerWidth / 4) - (itemWidth / 2)}px`;
-                        ev.target.style.top = `${startTop + row * (itemHeight + 20)}px`;
-                        const itemRect = ev.target.getBoundingClientRect();
-                        if (itemRect.bottom > containerHeight - 250) {
-                            ev.target.style.top = `${containerHeight - 250 - (row * (itemHeight + 20))}px`;
-                        }
-                    }
-                });
             });
         }
 
-        function allowDrop(ev) {
-            ev.preventDefault();
-        }
-
-        function drag(ev) {
-            initAudio(); // Ensure audio context is ready
-            ev.dataTransfer.setData("text", ev.target.id);
-        }
-
-        function drop(ev) {
-            ev.preventDefault();
-            let data = ev.dataTransfer.getData("text");
-            let item = document.getElementById(data);
+        function packItem(item) {
             if (item.dataset.letter === targetLetter) {
-                item.style.display = 'none'; // Remove from view
+                item.style.display = 'none';
                 score++;
                 document.getElementById('progress').innerText = `Packed: ${score}/${requiredCorrect}`;
                 playCorrectSound();
                 if (score >= requiredCorrect) {
                     clearInterval(timerInterval);
-                    playCorrectSound(); // Play once
+                    playCorrectSound();
                     setTimeout(() => {
                         alert(`Yay! You packed all the right things for ${targetLetter}! Great job! Moving to the next letter.`);
                         nextLevel();
-                    }, 100); // Delay to hear sound
+                    }, 100);
                 }
             } else {
                 item.style.animation = 'bounce 0.5s';
@@ -462,12 +377,6 @@
             document.getElementById('progress').innerText = `Packed: 0/${requiredCorrect}`;
             startGame();
         }
-
-        // Initialize audio on first interaction
-        document.addEventListener('touchstart', initAudio, { once: true });
-        document.addEventListener('click', initAudio, { once: true });
-
-        startGame(); // Auto-start
     </script>
 </body>
 </html>
