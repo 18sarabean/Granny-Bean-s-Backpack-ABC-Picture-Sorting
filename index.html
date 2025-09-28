@@ -34,14 +34,15 @@
             color: #ff9900;
             margin: 10px;
             font-style: italic;
+            max-width: 80%;
+            word-wrap: break-word;
         }
         #granny {
-    position: absolute;
-    top: 5px;    /* Anchors near the top */
-    left: 5px;   /* Anchors near the left */
-    width: 80px; /* Scales 1920px down to a reasonable size */
-    height: auto; /* Maintains 1080px height proportionally (~45px) */
-}
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 80px;
+            height: auto;
         }
         #backpack {
             position: absolute;
@@ -111,6 +112,7 @@
             padding: 10px;
             border-radius: 10px;
             max-width: 80%;
+            z-index: 10;
         }
         #progress {
             position: absolute;
@@ -165,6 +167,7 @@
             }
             #title {
                 font-size: 1.5em;
+                max-width: 70%;
             }
             #timer {
                 font-size: 1.2em;
@@ -174,9 +177,9 @@
                 font-size: 1em;
             }
             #granny {
-        width: 60px; /* Smaller for mobile */
-        top: 5px;
-        left: 5px;
+                width: 60px;
+                top: 5px;
+                left: 5px;
             }
             .item {
                 top: auto;
@@ -204,7 +207,7 @@
         <div id="startButton" onclick="initAndStart()">Tap to Start!</div>
     </div>
     <audio id="correctSound" src="sounds/ding.mp3" preload="auto"></audio>
-    <audio id="wrongSound" src="sounds/boing.mp3" preload="auto"></audio>
+    <audio id="wrongSound" src="sounds/gentle-boing.mp3" preload="auto"></audio>
 
     <script>
         const itemsData = {
@@ -363,7 +366,7 @@
                 let hint = document.getElementById('hint');
                 hint.innerText = hintText;
                 hint.style.display = 'block';
-                setTimeout(() => { hint.style.display = 'none'; }, 3000);
+                setTimeout(() => { hint.style.display = 'none'; }, 1500);
             }
         }
 
@@ -383,5 +386,3 @@
     </script>
 </body>
 </html>
-
-
