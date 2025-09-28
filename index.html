@@ -31,8 +31,8 @@
         }
         #title {
             font-size: 2em;
-            color: #ff9900;
-            margin: 10px;
+            color: #ff5900;
+            margin: 20px;
             font-style: italic;
             max-width: 80%;
             word-wrap: break-word;
@@ -283,7 +283,7 @@
         }
 
         function startGame() {
-            document.getElementById('title').innerText = `Pack for ${targetLetter}!`;
+            document.getElementById('title').innerText = `Pack Granny's Backpack for ${targetLetter}!`;
             document.getElementById('backpack').innerHTML = '🎒<span class="letter">' + targetLetter + '</span>';
             loadItems();
             timerInterval = setInterval(() => {
@@ -387,5 +387,6 @@
     </script>
 </body>
 </html>
+
 
 
