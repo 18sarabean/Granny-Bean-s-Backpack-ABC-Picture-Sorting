@@ -36,11 +36,12 @@
             font-style: italic;
         }
         #granny {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 5em;
-            line-height: 1;
+    position: absolute;
+    top: 5px;    /* Anchors near the top */
+    left: 5px;   /* Anchors near the left */
+    width: 80px; /* Scales 1920px down to a reasonable size */
+    height: auto; /* Maintains 1080px height proportionally (~45px) */
+}
         }
         #backpack {
             position: absolute;
@@ -173,7 +174,9 @@
                 font-size: 1em;
             }
             #granny {
-                font-size: 3em;
+        width: 60px; /* Smaller for mobile */
+        top: 5px;
+        left: 5px;
             }
             .item {
                 top: auto;
@@ -380,4 +383,5 @@
     </script>
 </body>
 </html>
+
 
